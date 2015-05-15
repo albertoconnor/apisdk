@@ -10,6 +10,7 @@ _headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
 _expire = 5
 _cache = { }
+_api_hits = 0
 
 # Hybrids
 def key(value=None) :
@@ -36,6 +37,14 @@ def headers(value=None) :
         _headers = value
     return _headers
 
+def incrementApiHits():
+    global _api_hits
+    _api_hits += 1
+
+def apiHits():
+    global _api_hits
+    return _api_hits
+
 def RelateIQ(_key,_secret,_endpoint=None) :
     if _endpoint == None :
         _endpoint = 'https://api.relateiq.com/v2/'
@@ -51,9 +60,9 @@ def cache(endpoint,value=None) :
 
 def process_response(response) :
     if response.status_code == 503 :
-        raise NotImplementedError("This function is not currently supported by RelateIQ")
+        raise NotImplementedError("503: This function is not currently supported by RelateIQ")
     elif response.status_code == 404 :
-        raise requests.exceptions.HTTPError("Object Not Found", response=response)
+        raise requests.exceptions.HTTPError("404: Object Not Found", response=response)
     elif response.status_code >= 400 :
         # Record Response Data
         message = "\n[" + str(response.status_code) + "] "
@@ -80,12 +89,23 @@ def process_response(response) :
     # 400 Bad Request - pass on internal message
     # 502 Bad Gateway - Reattempt
     response.raise_for_status()
-    return response.json()
+    try:
+        return response.json()
+    except ValueError, e:
+        return {}
 
-def send_request(request) :
+
+def send_request(request, retries=3) :
+    incrementApiHits()
     session = requests.Session()
     prepared_request = session.prepare_request(request)
     response = session.send(prepared_request)
+    if (response.status_code == 504 or response.status_code == 503 or response.status_code == 502):
+        print("ERROR: RIQ " + str(response.status_code))
+        if (retries > 0):
+            print("RETRYING " + str(4-retries) + "/3")
+            time.sleep(10 * (4-retries))
+            return send_request(request, retries-1)
     result = process_response(response)
     return result
 
@@ -138,7 +158,7 @@ def delete(_endpoint,options={}) :
 
 def fetch(endpoint,options={}) :
     try:
-        return get(endpoint)
+        return get(endpoint, options)
     except requests.exceptions.HTTPError as e :
         if e.response.status_code == 404 :
             return {}

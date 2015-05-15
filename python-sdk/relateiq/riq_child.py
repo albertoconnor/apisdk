@@ -11,6 +11,7 @@ class RIQChild(object) :
     _page_index = 0
     _page_length = 200
     _fetch_options = {}
+    _batch_size = 50
 
     _parent = None
     _object_class = None
@@ -22,7 +23,7 @@ class RIQChild(object) :
     def endpoint(self) :
         return self._parent.endpoint() + self.node()
 
-    def fetchBatch(self,param,values,maxSize) :
+    def fetchBatch(self,param,values,maxSize=_page_length) :
         chunks = [values[x:x+maxSize] for x in xrange(0, len(values), maxSize)]
         objects = []
         for i, chunk in enumerate(chunks):
@@ -42,7 +43,13 @@ class RIQChild(object) :
                 limit = self._page_length
             self._fetch_options['_start'] = str(index)
             self._fetch_options['_limit'] =  str(limit)
-        data = riq.get(self.endpoint(),self._fetch_options)
+        try:
+            data = riq.get(self.endpoint(),self._fetch_options)
+        except HTTPError as e:
+            #retry, get list items has a self fixing error:
+            #if it still fails, let it raise
+            print "Retrying GET " + self.endpoint()
+            data = riq.get(self.endpoint(), self._fetch_options)
         objects = []
         for obj in data.get('objects',[]) :
             objects.append(self._object_class(data=obj,parent=self._parent))
@@ -84,7 +91,7 @@ class RIQChild(object) :
         return_objs = {}
         objs = list(_objs)
         while len(objs) > 0:
-            chunk_size = self._page_length if len(objs) > self._page_length else len(objs)
+            chunk_size = self._batch_size if len(objs) > self._batch_size else len(objs)
             chunk = objs[0:chunk_size]
             objs = objs[chunk_size:] if chunk_size < len(objs) else []
             batch_objs = self.createBatchHelper('/createBatch',chunk)
@@ -96,7 +103,7 @@ class RIQChild(object) :
         return_objs = {}
         objs = list(_objs)
         while len(objs) > 0:
-            chunk_size = self._page_length if len(objs) > self._page_length else len(objs)
+            chunk_size = self._batch_size if len(objs) > self._batch_size else len(objs)
             chunk = objs[0:chunk_size]
             objs = objs[chunk_size:] if chunk_size < len(objs) else []
             batch_objs = self.updateBatchHelper('/updateBatch',chunk)

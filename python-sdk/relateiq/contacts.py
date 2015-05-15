@@ -6,6 +6,7 @@ class Contact(RIQObject,RIQBase) :
     _id = None
     _modifiedDate = None
     _properties = None
+    _requestedIds = None
 
     def __init__(self,
         _id=None,
@@ -42,8 +43,12 @@ class Contact(RIQObject,RIQBase) :
     @classmethod
     def fetchByIds(cls,contactIds) :
         contactsById = {}
+        # TODO : Consider having error checking inside fetchByIds
         for contact in cls.fetchBatch('_ids',contactIds,cls._page_length) :
             contactsById[contact.id()] = contact
+            if contact.requestedIds() is not None:
+                for requestedId in contact.requestedIds():
+                    contactsById[requestedId] = contact
         cls.setFetchOptions()
         return contactsById
 
@@ -51,6 +56,7 @@ class Contact(RIQObject,RIQBase) :
         self.id(data.get('id',None))
         self.modifiedDate(data.get('modifiedDate',None))
         self.properties(data.get('properties',{}))
+        self.requestedIds(data.get('requestedIds', []))
         return self
 
     # Data Payload
@@ -162,3 +168,8 @@ class Contact(RIQObject,RIQBase) :
         if value != None :
             self.property('twhan',value)
         return self.property('twhan')
+
+    def requestedIds(self, value=None):
+        if value != None:
+            self._requestedIds = value
+        return self._requestedIds or []

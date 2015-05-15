@@ -14,6 +14,7 @@ class List(RIQObject,RIQBase) :
     _title = None
     _listType = None
     _fields = None
+    _size = None
 
     def __init__(self, _id=None, title=None, modifiedDate=None, fields=None, data=None) :
         if data != None :
@@ -37,6 +38,7 @@ class List(RIQObject,RIQBase) :
         self.title(data.get('title',None))
         self.listType(data.get('listType',None))
         self.fields(data.get('fields',None))
+        self.size(data.get('size', None))
         return self
 
     # Data Payload
@@ -75,6 +77,11 @@ class List(RIQObject,RIQBase) :
             self._fields = value
         return self._fields or []
 
+    def size(self, value=None):
+        if value != None:
+            self._size = value
+        return self._size
+
     # Sub Endpoints
     def ListItem(self,*args,**kwargs) :
         kwargs['parent'] = self
@@ -111,3 +118,10 @@ class List(RIQObject,RIQBase) :
             if field.get('display',None) == key :
                 return field.get('id',key)
         return key
+
+    def fieldMap(self):
+        return {field["id"]: field for field in self._fields}
+
+    def fetchListSize(self):
+        self.get({"includeSize" : True})
+        return self.size()
