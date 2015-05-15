@@ -161,6 +161,10 @@ class ListItem(RIQObject) :
         #value = self._fieldValues.get(key,None)
         return self.list().fieldValue(key, self._fieldValues.get(key,None))
 
+    def removeFieldValue(self, key):
+        key = self.list().fieldKey(key)
+        del self._fieldValues[key]
+
     def linkedItemIds(self,value=None) :
         if value != None :
             self._linkedItemIds = value

@@ -11,6 +11,7 @@ class RIQBase(object):
     _page_index = 0
     _page_length = 200
     _fetch_options = {}
+    _batch_size = 50
 
     @classmethod
     @abstractmethod
@@ -22,15 +23,16 @@ class RIQBase(object):
         return cls.node()
 
     @classmethod
-    def fetchBatch(cls,param,values,maxSize) :
+    def fetchBatch(cls,param,values,maxSize=_page_length) :
         chunks = [values[x:x+maxSize] for x in xrange(0, len(values), maxSize)]
         objects = []
         for i, chunk in enumerate(chunks):
             try:
                 cls.setFetchOptions({param:','.join(chunk)})
+                # TODO : set += is not consistent with the rest of the code base
                 objects += cls.fetchPage()
             except HTTPError, e:
-                if e.response.status_code == 414 or e.response.status_code == 413: #max url length is 8192 (2^13). If longer, will give a 414 error.
+                if (e.response.status_code == 414 or e.response.status_code == 413) and maxSize > 1: #max url length is 8192 (2^13). If longer, will give a 414 error.
                     objects += cls.fetchBatch(param, chunk, int(math.ceil(maxSize/2)))
                 else:
                     raise
@@ -89,7 +91,7 @@ class RIQBase(object):
     def createBatch(cls,objs):
         return_objs = {}
         while len(objs) > 0:
-            chunk_size = cls._page_length if len(objs) > cls._page_length else len(objs)
+            chunk_size = cls._batch_size if len(objs) > cls._batch_size else len(objs)
             chunk = objs[0:chunk_size]
             objs = objs[chunk_size:] if chunk_size < len(objs) else []
             batch_objs = cls.createBatchHelper('/createBatch',chunk)
@@ -101,7 +103,7 @@ class RIQBase(object):
     def updateBatch(cls,objs):
         return_objs = {}
         while len(objs) > 0:
-            chunk_size = cls._page_length if len(objs) > cls._page_length else len(objs)
+            chunk_size = cls._batch_size if len(objs) > cls._batch_size else len(objs)
             chunk = objs[0:chunk_size]
             objs = objs[chunk_size:] if chunk_size < len(objs) else []
             batch_objs = cls.updateBatchHelper('/updateBatch',chunk)
