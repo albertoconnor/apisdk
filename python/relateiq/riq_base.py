@@ -1,11 +1,9 @@
 from abc import ABCMeta, abstractmethod
-import client as riq
+from . import client as riq
 from requests import HTTPError
 import math
 
-class RIQBase(object):
-    __metaclass__ = ABCMeta
-
+class RIQBase(object, metaclass=ABCMeta):
     _cache = []
     _cache_index = 0
     _page_index = 0
@@ -24,14 +22,14 @@ class RIQBase(object):
 
     @classmethod
     def fetchBatch(cls,param,values,maxSize=_page_length) :
-        chunks = [values[x:x+maxSize] for x in xrange(0, len(values), maxSize)]
+        chunks = [values[x:x+maxSize] for x in range(0, len(values), maxSize)]
         objects = []
         for i, chunk in enumerate(chunks):
             try:
                 cls.setFetchOptions({param:','.join(chunk)})
                 # TODO : set += is not consistent with the rest of the code base
                 objects += cls.fetchPage()
-            except HTTPError, e:
+            except HTTPError as e:
                 if (e.response.status_code == 414 or e.response.status_code == 413) and maxSize > 1: #max url length is 8192 (2^13). If longer, will give a 414 error.
                     objects += cls.fetchBatch(param, chunk, int(math.ceil(maxSize/2)))
                 else:
@@ -129,4 +127,4 @@ class RIQBase(object):
 
     @classmethod
     def dummyClassMethod(cls):
-        print
+        print()

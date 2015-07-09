@@ -1,5 +1,5 @@
-from riq_child import RIQChild
-from field import Field
+from .riq_child import RIQChild
+from .field import Field
 
 class Fields(RIQChild) :
     _cache = []

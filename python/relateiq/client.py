@@ -91,7 +91,7 @@ def process_response(response) :
     response.raise_for_status()
     try:
         return response.json()
-    except ValueError, e:
+    except ValueError as e:
         return {}
 
 
@@ -101,9 +101,9 @@ def send_request(request, retries=3) :
     prepared_request = session.prepare_request(request)
     response = session.send(prepared_request)
     if (response.status_code == 504 or response.status_code == 503 or response.status_code == 502):
-        print("ERROR: RIQ " + str(response.status_code))
+        print(("ERROR: RIQ " + str(response.status_code)))
         if (retries > 0):
-            print("RETRYING " + str(4-retries) + "/3")
+            print(("RETRYING " + str(4-retries) + "/3"))
             time.sleep(10 * (4-retries))
             return send_request(request, retries-1)
     result = process_response(response)

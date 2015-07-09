@@ -1,5 +1,5 @@
-from riq_obj import RIQObject
-from riq_base import RIQBase
+from .riq_obj import RIQObject
+from .riq_base import RIQBase
 
 class Account(RIQObject,RIQBase) :
     # Object Attributes

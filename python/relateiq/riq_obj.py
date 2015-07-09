@@ -1,10 +1,8 @@
 from abc import ABCMeta, abstractmethod
-import client as riq
+from . import client as riq
 import json
 
-class RIQObject(object) :
-    __metaclass__ = ABCMeta
-
+class RIQObject(object, metaclass=ABCMeta) :
     _parent = None
 
     @abstractmethod

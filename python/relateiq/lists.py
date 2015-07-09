@@ -1,7 +1,7 @@
-from riq_obj import RIQObject
-from riq_base import RIQBase
-from listitems import ListItems
-from listitem import ListItem
+from .riq_obj import RIQObject
+from .riq_base import RIQBase
+from .listitems import ListItems
+from .listitem import ListItem
 
 # TODO: Add version, externalId, category
 # TODO: Payload exception if missing required fields

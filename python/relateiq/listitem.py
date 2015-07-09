@@ -1,4 +1,4 @@
-from riq_obj import RIQObject
+from .riq_obj import RIQObject
 
 class ListItem(RIQObject) :
     # Object Attributes
@@ -53,7 +53,7 @@ class ListItem(RIQObject) :
 
     def parse(self,data,parent=None) :
         fieldValues = {}
-        for field,valueList in data.get('fieldValues',{}).items() :
+        for field,valueList in list(data.get('fieldValues',{}).items()) :
             fieldValue = []
             if len(valueList) == 1 :
                 fieldValue = valueList[0].get('raw',None)
@@ -77,9 +77,9 @@ class ListItem(RIQObject) :
     # Data Payload
     def payload(self) :
         fieldValues = {}
-        for field,value in self.fieldValues().items() :
+        for field,value in list(self.fieldValues().items()) :
             valueList = []
-            if isinstance(value, basestring) :
+            if isinstance(value, str) :
                 value = [value]
             for val in value :
                 valueList.append({'raw':val})
@@ -127,7 +127,7 @@ class ListItem(RIQObject) :
 
     def contactIds(self,value=None) :
         if value != None :
-            if isinstance(value,basestring) :
+            if isinstance(value,str) :
                 self._contactIds = [value]
             else :
                 self._contactIds = value
@@ -147,7 +147,7 @@ class ListItem(RIQObject) :
 
     def fieldValues(self,value=None) :
         if value != None :
-            for key,val in value.items() :
+            for key,val in list(value.items()) :
                 self.fieldValue(key,val)
         return self._fieldValues or {}
 

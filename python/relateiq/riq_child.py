@@ -1,11 +1,9 @@
 from abc import ABCMeta, abstractmethod
-import client as riq
+from . import client as riq
 from requests import HTTPError
 import math
 
-class RIQChild(object) :
-    __metaclass__ = ABCMeta
-
+class RIQChild(object, metaclass=ABCMeta) :
     _cache = []
     _cache_index = 0
     _page_index = 0
@@ -24,13 +22,13 @@ class RIQChild(object) :
         return self._parent.endpoint() + self.node()
 
     def fetchBatch(self,param,values,maxSize=_page_length) :
-        chunks = [values[x:x+maxSize] for x in xrange(0, len(values), maxSize)]
+        chunks = [values[x:x+maxSize] for x in range(0, len(values), maxSize)]
         objects = []
         for i, chunk in enumerate(chunks):
             try:
                 self.setFetchOptions({param:','.join(chunk)})
                 objects += self.fetchPage()
-            except HTTPError, e:
+            except HTTPError as e:
                 if e.response.status_code == 414 or e.response.status_code == 413: #max url length is 8192 (2^13). If longer, will give a 414 error.
                     objects += self.fetchBatch(param, chunk, int(math.ceil(maxSize/2)))
                 else:
@@ -48,14 +46,14 @@ class RIQChild(object) :
         except HTTPError as e:
             #retry, get list items has a self fixing error:
             #if it still fails, let it raise
-            print "Retrying GET " + self.endpoint()
+            print("Retrying GET " + self.endpoint())
             data = riq.get(self.endpoint(), self._fetch_options)
         objects = []
         for obj in data.get('objects',[]) :
             objects.append(self._object_class(data=obj,parent=self._parent))
         return objects
 
-    def next(self) :
+    def __next__(self) :
         if self._cache_index == 0 :
             self._cache = []
             self._cache_index = 0
