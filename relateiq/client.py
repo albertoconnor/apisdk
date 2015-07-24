@@ -5,6 +5,7 @@ import json
 _key = None
 _secret = None
 _endpoint = None
+_session = None
 
 _headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
@@ -31,6 +32,12 @@ def endpoint(value=None) :
         _endpoint = value
     return _endpoint
 
+def get_session(value=None):
+    global _session
+    if value != None:
+        _session = value
+    return _session
+
 def headers(value=None) :
     global _headers
     if value != None :
@@ -45,12 +52,13 @@ def apiHits():
     global _api_hits
     return _api_hits
 
-def RelateIQ(_key,_secret,_endpoint=None) :
+def RelateIQ(_key, _secret, _endpoint=None, _session=None) :
     if _endpoint == None :
         _endpoint = 'https://api.relateiq.com/v2/'
     key(_key)
     secret(_secret)
     endpoint(_endpoint)
+    get_session(_session)
 
 # Helper Functions
 def cache(endpoint,value=None) :
@@ -97,7 +105,9 @@ def process_response(response) :
 
 def send_request(request, retries=3) :
     incrementApiHits()
-    session = requests.Session()
+    session = get_session()
+    if session is None:
+        session = requests.Session()
     prepared_request = session.prepare_request(request)
     response = session.send(prepared_request)
     if (response.status_code == 504 or response.status_code == 503 or response.status_code == 502):
