@@ -20,7 +20,7 @@ packages = [
 ]
 
 requires = [
-    'requests==2.6.0',
+    'requests==2.7.0',
     'nameparser==0.3.4',
     'validate_email==1.3',
     'pytz==2015.2',
@@ -29,10 +29,10 @@ requires = [
 setup(
     name='relateiq',
     version='0.0.1',
-    description='Api sdk for api.relateiq.com',
+    description='Api sdk for api.salesforceiq.com',
     long_description='',
     author='relateiq',
-    url='http://api.relateiq.com',
+    url='https://github.com/Blitzen/apisdk',
     packages=packages,
     install_requires=requires,
     license='Apache 2.0',

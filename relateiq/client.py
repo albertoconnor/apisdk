@@ -54,7 +54,7 @@ def apiHits():
 
 def RelateIQ(_key, _secret, _endpoint=None, _session=None) :
     if _endpoint == None :
-        _endpoint = 'https://api.relateiq.com/v2/'
+        _endpoint = 'https://api.salesforceiq.com/v2/'
     key(_key)
     secret(_secret)
     endpoint(_endpoint)
